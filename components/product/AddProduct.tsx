@@ -2,9 +2,11 @@
 
 import ImageSelect from "./ImageSelect";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 import { PlusIcon } from "lucide-react";
 
+import { createProduct } from "@/lib/actions/products";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,6 +28,7 @@ export default function AddProduct({
   edit?: boolean;
   id?: string;
 }) {
+  const router = useRouter();
   const title = edit ? "Edit Product " + id : "Add Product";
   const subText = edit
     ? "Update the details of your product here."
@@ -37,9 +40,22 @@ export default function AddProduct({
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("electronics");
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log({ name, category, images, description, price });
+    try {
+      const newProductId = await createProduct({
+        name,
+        category,
+        description,
+        price,
+        images,
+      });
+      // redirect to the products page after creating a new product
+      router.push(`/product/view/${newProductId}`);
+    } catch (error) {
+      // show some toast or alert to the user
+      console.error("Error creating product:", error);
+    }
   };
 
   return (

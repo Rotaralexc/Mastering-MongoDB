@@ -18,3 +18,5 @@ async function dbConnect() {
 
   return mongoose.connection;
 }
+
+export default dbConnect;
