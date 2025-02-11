@@ -28,3 +28,18 @@ export async function getProductById(_id: string) {
     return null;
   }
 }
+
+export async function updateProduct(productId: string, data: Partial<Product>) {
+  // Make sure we connect to the database
+  await dbConnect();
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(productId, data, {
+      new: true,
+    });
+
+    return updatedProduct._id.toString();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}

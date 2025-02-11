@@ -6,6 +6,7 @@ import AddProduct from "@/components/product/AddProduct";
 import DeleteProduct from "@/components/delete/DeleteProduct";
 import { getProductById } from "@/lib/actions/products";
 import Review from "@/lib/models/review";
+import product from "@/lib/models/product";
 
 export const revalidate = 1;
 
@@ -16,18 +17,19 @@ export default async function Page({ params }: { params: { path: string[] } }) {
   if (method === "new") {
     return <AddProduct />;
   }
-  if (method === "edit") {
-    return <AddProduct edit id={id} />;
-  }
-  if (method === "delete") {
-    return <DeleteProduct id={id} />;
-  }
 
   const product = await getProductById(id);
   const { reviews, averageRating } = await getReviewsAndRating(id);
 
   if (!product) {
     return <div>Product not found</div>;
+  }
+
+  if (method === "edit") {
+    return <AddProduct edit id={id} product={product} />;
+  }
+  if (method === "delete") {
+    return <DeleteProduct id={id} />;
   }
 
   return (
