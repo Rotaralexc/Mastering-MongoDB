@@ -1,10 +1,13 @@
 "use server";
 
+import { pipeline } from "stream";
+
 import { unstable_cache as cache, revalidateTag } from "next/cache";
 
 import Product from "@/lib/models/product";
 // Import the database connection
 import dbConnect from "@/lib/db";
+import page from "@/app/page";
 
 export async function createProduct(product: Product) {
   try {
@@ -67,4 +70,68 @@ export async function deleteProduct(productId: string): Promise<boolean> {
     console.error("Error deleting product", error);
     return false;
   }
+
+  export async function getProducts(
+  page: number,
+  search: string,
+  minPrice: number,
+  category?: string // Ensure `category` is optional
+) {
+  await dbConnect();
+
+  const limit = 5;
+  const skip = (page - 1) * limit;
+
+  try {
+    const matchFilter: any = {
+      name: {
+        $regex: search,
+        $options: "i",
+      },
+      price: {
+        $gte: minPrice,
+      },
+    };
+
+    // Add category conditionally
+    if (category) {
+      matchFilter.category = category;
+    }
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "_id",
+          foreignField: "product",
+          as: "reviews",
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          image: { $first: "$images" },
+          averageRating: {
+            $avg: "$reviews.rating",
+          },
+        },
+      },
+      {
+        $match: matchFilter, // Use pre-built match filter
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+    ];
+
+    const products = await Product.aggregate(pipeline);
+    return products;
+  } catch (error) {
+    console.log(error);
+  }
 }
+
+  
