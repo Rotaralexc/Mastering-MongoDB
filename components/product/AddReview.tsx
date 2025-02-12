@@ -4,15 +4,30 @@ import RatingSelect from "./Review/RatingSelect";
 
 import { useState } from "react";
 
-export default function Component() {
+import { createReview } from "@/lib/actions/review";
+
+export default function Component({ id }: { id: string }) {
   const [rating, setRating] = useState(0);
   const [name, setName] = useState("");
   const [review, setReview] = useState("");
 
-  const handleSubmit = (event: any) => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
-
-    console.log({ name, rating, review });
+    try {
+      const newReview = {
+        author: {
+          name: name,
+          email: "example@email.com",
+        },
+        rating,
+        content: review,
+        productId: id,
+      };
+      const reviewId = await createReview(newReview);
+      console.log("Review created with ID: ", reviewId);
+    } catch (error) {
+      console.error("An error was thrown: ", error);
+    }
   };
   return (
     <section className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md">

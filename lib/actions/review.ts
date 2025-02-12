@@ -20,3 +20,14 @@ async function getReviewsAndRating(productId: string) {
 
   return { reviews, averageRating };
 }
+
+export async function createReview(review: Review) {
+  await dbConnect();
+  try {
+    const newReview = await Review.create(review);
+    return newReview._id.toString();
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error creating review");
+  }
+}

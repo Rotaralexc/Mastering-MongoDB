@@ -40,6 +40,9 @@ export default async function Page({ params }: { params: { path: string[] } }) {
           <Review key={index} review={review} />
         ))}
       </div>
+      <div className="md:col-span-2">
+        <AddReview id={id} />
+      </div>
     </div>
   );
 }
