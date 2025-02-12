@@ -1,5 +1,7 @@
 "use server";
 
+import { unstable_cache as cache, revalidateTag } from "next/cache";
+
 import Product from "@/lib/models/product";
 // Import the database connection
 import dbConnect from "@/lib/db";
@@ -15,7 +17,7 @@ export async function createProduct(product: Product) {
   }
 }
 
-export async function getProductById(_id: string) {
+async function _getProductById(_id: string) {
   await dbConnect();
   try {
     const product = await Product.findById(_id);
@@ -29,6 +31,11 @@ export async function getProductById(_id: string) {
   }
 }
 
+export const getProductById = cache(_getProductById, ["getProductById"], {
+  tags: ["Product"],
+  revalidate: 60, // Re-fetch the data every 60 seconds
+});
+
 export async function updateProduct(productId: string, data: Partial<Product>) {
   // Make sure we connect to the database
   await dbConnect();
@@ -37,6 +44,8 @@ export async function updateProduct(productId: string, data: Partial<Product>) {
       new: true,
     });
 
+    // Mark the data as stale, and re-fetch it from the database
+    revalidateTag("Product");
     return updatedProduct._id.toString();
   } catch (error) {
     console.error(error);
@@ -50,6 +59,9 @@ export async function deleteProduct(productId: string): Promise<boolean> {
   try {
     // delete the product by ID
     const result = await Product.deleteOne({ _id: productId });
+
+    // Mark the data as stale, and re-fetch it from the database
+    revalidateTag("Product");
     return result.deletedCount === 1;
   } catch (error) {
     console.error("Error deleting product", error);
